@@ -11,7 +11,7 @@
             Social Network
         </Label>
         <Button x:Name="IntroButton" Click="IntroButton_Click" Margin="10 5" FontSize="15" Padding="0 2 0 4">
-            Войти в систему
+            Log In
         </Button>
     </StackPanel>
 </Window>

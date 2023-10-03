@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:SocialNetwork.View"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
+        Closed="Window_Closed"
         Title="CrudUser" Height="400" Width="450">
     <Grid>
         <Grid.ColumnDefinitions>

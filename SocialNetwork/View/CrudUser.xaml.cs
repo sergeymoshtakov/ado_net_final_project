@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,6 +20,8 @@ namespace SocialNetwork.View
     /// </summary>
     public partial class CrudUser : Window
     {
+        private static Mutex? mutex;
+        private static String mutexName = "CRUD_MUTEX";
         public Data.Entity.User? User { get; set; }
         public bool IsDeleted { get; set; }
         public bool enabled = false;
@@ -28,6 +31,7 @@ namespace SocialNetwork.View
         public string InitialAvatar;
         public CrudUser()
         {
+            CheckPreviousLunch();
             InitializeComponent();
             SaveButton.IsEnabled = enabled;
         }
@@ -115,6 +119,32 @@ namespace SocialNetwork.View
         {
             enabled = StatusBox.Text != InitialStatus;
             SaveButton.IsEnabled = enabled;
+        }
+        public void CheckPreviousLunch()
+        {
+            try
+            {
+                mutex = Mutex.OpenExisting(mutexName);
+            }
+            catch { }
+            if (mutex != null)
+            {
+                if (!mutex.WaitOne(1))
+                {
+                    String message = "Enother exemplar started";
+                    MessageBox.Show("Enother exemplar started");
+                    throw new Exception(message);
+                }
+
+            }
+            else
+            {
+                mutex = new Mutex(true, mutexName);
+            }
+        }
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            mutex?.ReleaseMutex();
         }
     }
 }

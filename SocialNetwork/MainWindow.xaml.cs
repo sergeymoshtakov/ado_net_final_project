@@ -54,19 +54,22 @@ namespace SocialNetwork
             }
         }
 
+
         private void AgeButton_Click(object sender, RoutedEventArgs e)
         {
             var today = DateTime.Today;
-            var Query = dataContext.Users.Where(u => u.DeleteDt == null).Join(dataContext.Users, m1 => m1.Id, m2 => m2.Id,
-                (m1, m2) => new Pair()
+            var query = dataContext.Users
+                .Where(u => u.DeleteDt == null)
+                .Join(dataContext.Users, m1 => m1.Id, m2 => m2.Id, (m1, m2) => new Pair()
                 {
                     Key = $"{m1.Surname} {m1.Name[0]}.",
                     Value = (today.Year - m2.Birthday.Year).ToString() // calculate age based on current date
                 })
                 .ToList()
                 .OrderByDescending(d => int.Parse(d.Value));
+
             Pairs.Clear();
-            foreach (var pair in Query)
+            foreach (var pair in query)
             {
                 Pairs.Add(pair);
             }
@@ -115,54 +118,51 @@ namespace SocialNetwork
             }
         }
 
-        private void ShowDeleted_Checked(object sender, RoutedEventArgs e)
+        private async void ShowDeleted_Checked(object sender, RoutedEventArgs e)
         {
-            // var query = dataContext.Users.Where(manager => manager.DeleteDt != null);
-            // foreach (var pair in query)
-            // {
-                // UsersView.Add(pair);
-            // }
-            usersListView.Filter =
-              item => (item as Data.Entity.User)?.DeleteDt == null || (item as Data.Entity.User)?.DeleteDt != null;
-            usersListView.Refresh();
+            await ApplyFilterAsync(item => (item as Data.Entity.User)?.DeleteDt == null || (item as Data.Entity.User)?.DeleteDt != null);
         }
 
-        private void ShowDeleted_Unchecked(object sender, RoutedEventArgs e)
+        private async void ShowDeleted_Unchecked(object sender, RoutedEventArgs e)
         {
-            usersListView.Filter =
-              item => (item as Data.Entity.User)?.DeleteDt == null;
-            usersListView.Refresh();
+            await ApplyFilterAsync(item => (item as Data.Entity.User)?.DeleteDt == null);
         }
 
-        private void AddGroupButton_Click(object sender, RoutedEventArgs e)
+        private async void AddGroupButton_Click(object sender, RoutedEventArgs e)
         {
-            Data.Entity.User newUser = new() { Id = new Guid(), Name = " ", Surname = "",
-                Birthday = DateTime.Now, CreateDt = DateTime.Now, Status = null, 
-                Avatar = null, Gender = null, DeleteDt = null, IdGender = new Guid("d3c376e4-bce3-4d85-aba4-e3cf49612c94") };
+            await AddNewUserAsync();
+        }
+
+        private async Task AddNewUserAsync()
+        {
+            Data.Entity.User newUser = new() { Id = new Guid(), Name = " ", Surname = "", Birthday = DateTime.Now, CreateDt = DateTime.Now, Status = null, Avatar = null, Gender = null, DeleteDt = null, IdGender = new Guid("d3c376e4-bce3-4d85-aba4-e3cf49612c94") };
             View.CrudUser dialog = new() { User = newUser };
             if (dialog.ShowDialog() ?? false)
             {
                 dataContext.Users.Add(newUser);
-                dataContext.SaveChanges();
-                usersListView.Refresh();
+                await dataContext.SaveChangesAsync();
+                await FetchUsersAsync();
             }
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async Task FetchUsersAsync()
         {
-            dataContext.Users.Load();
+            await dataContext.Users.LoadAsync();
             UsersView = dataContext.Users.Local.ToObservableCollection();
             usersList.ItemsSource = UsersView;
-            usersListView =
-            CollectionViewSource.GetDefaultView(UsersView);
-            usersListView.Filter =
-              item => (item as Data.Entity.User)?.DeleteDt == null;
+            usersListView = CollectionViewSource.GetDefaultView(UsersView);
+            usersListView.Filter = item => (item as Data.Entity.User)?.DeleteDt == null;
+        }
+
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            await FetchUsersAsync();
         }
 
         private void RegisteredButton_Click(object sender, RoutedEventArgs e)
         {
             var today = DateTime.Today;
-            var Query = dataContext.Users.Where(u => u.DeleteDt == null).Join(dataContext.Users, m1 => m1.Id, m2 => m2.Id,
+            var query = dataContext.Users.Where(u => u.DeleteDt == null).Join(dataContext.Users, m1 => m1.Id, m2 => m2.Id,
                 (m1, m2) => new Pair()
                 {
                     Key = $"{m1.Surname} {m1.Name[0]}.",
@@ -170,8 +170,9 @@ namespace SocialNetwork
                 })
                 .ToList()
                 .OrderByDescending(d => int.Parse(d.Value));
+
             Pairs.Clear();
-            foreach (var pair in Query)
+            foreach (var pair in query)
             {
                 pair.Value = pair.Value + " days ago";
                 Pairs.Add(pair);
@@ -186,6 +187,7 @@ namespace SocialNetwork
                 Value = d.Users.Where(u => u.DeleteDt == null).Count().ToString()
             }).ToList()
                 .OrderByDescending(pair => int.Parse(pair.Value));
+
             Pairs.Clear();
             foreach (var pair in query)
             {
@@ -195,6 +197,15 @@ namespace SocialNetwork
                 }
                 Pairs.Add(pair);
             }
+        }
+
+        private async Task ApplyFilterAsync(Predicate<object> filter)
+        {
+            await Dispatcher.InvokeAsync(() =>
+            {
+                usersListView.Filter = item => filter(item);
+                usersListView.Refresh();
+            });
         }
     }
 }
