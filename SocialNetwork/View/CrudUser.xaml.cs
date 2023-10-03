@@ -131,8 +131,8 @@ namespace SocialNetwork.View
             {
                 if (!mutex.WaitOne(1))
                 {
-                    String message = "Enother exemplar started";
-                    MessageBox.Show("Enother exemplar started");
+                    String message = "Enother crud window started";
+                    MessageBox.Show(message);
                     throw new Exception(message);
                 }
 

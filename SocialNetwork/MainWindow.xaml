@@ -24,9 +24,9 @@
             <Label Grid.Row="0" Content="Database monitor" HorizontalAlignment="Center"/>
             <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
                 <StackPanel Orientation="Horizontal" Margin="0 10 0 10">
-                    <Label Content="Пользователи" DockPanel.Dock="Left"/>
-                    <Button Content="Добавить" x:Name="AddGroupButton" Click="AddGroupButton_Click" DockPanel.Dock="Right" Margin="0 0 10 0"/>
-                    <CheckBox Content="Показать удаленных" x:Name="ShowDeleted" IsChecked="False" VerticalAlignment="Center" Checked="ShowDeleted_Checked" Unchecked="ShowDeleted_Unchecked"/>
+                    <Label Content="Users" DockPanel.Dock="Left"/>
+                    <Button Content="Add user" x:Name="AddGroupButton" Click="AddGroupButton_Click" DockPanel.Dock="Right" Margin="0 0 10 0"/>
+                    <CheckBox Content="Show deleted" x:Name="ShowDeleted" IsChecked="False" VerticalAlignment="Center" Checked="ShowDeleted_Checked" Unchecked="ShowDeleted_Unchecked"/>
                 </StackPanel>
                 <ScrollViewer CanContentScroll="True" Height="180">
                     <ListView x:Name = "usersList" ItemsSource="{Binding UsersView}">

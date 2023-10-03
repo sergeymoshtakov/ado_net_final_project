@@ -135,23 +135,37 @@ namespace SocialNetwork
 
         private async Task AddNewUserAsync()
         {
-            Data.Entity.User newUser = new() { Id = new Guid(), Name = " ", Surname = "", Birthday = DateTime.Now, CreateDt = DateTime.Now, Status = null, Avatar = null, Gender = null, DeleteDt = null, IdGender = new Guid("d3c376e4-bce3-4d85-aba4-e3cf49612c94") };
-            View.CrudUser dialog = new() { User = newUser };
-            if (dialog.ShowDialog() ?? false)
+            try
             {
-                dataContext.Users.Add(newUser);
-                await dataContext.SaveChangesAsync();
-                await FetchUsersAsync();
+                Data.Entity.User newUser = new() { Id = new Guid(), Name = " ", Surname = "", Birthday = DateTime.Now, CreateDt = DateTime.Now, Status = null, Avatar = null, Gender = null, DeleteDt = null, IdGender = new Guid("d3c376e4-bce3-4d85-aba4-e3cf49612c94") };
+                View.CrudUser dialog = new() { User = newUser };
+                if (dialog.ShowDialog() ?? false)
+                {
+                    dataContext.Users.Add(newUser);
+                    await dataContext.SaveChangesAsync();
+                    await FetchUsersAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while saving user: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async Task FetchUsersAsync()
         {
-            await dataContext.Users.LoadAsync();
-            UsersView = dataContext.Users.Local.ToObservableCollection();
-            usersList.ItemsSource = UsersView;
-            usersListView = CollectionViewSource.GetDefaultView(UsersView);
-            usersListView.Filter = item => (item as Data.Entity.User)?.DeleteDt == null;
+            try
+            {
+                await dataContext.Users.LoadAsync();
+                UsersView = dataContext.Users.Local.ToObservableCollection();
+                usersList.ItemsSource = UsersView;
+                usersListView = CollectionViewSource.GetDefaultView(UsersView);
+                usersListView.Filter = item => (item as Data.Entity.User)?.DeleteDt == null;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while fetching users: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -166,7 +180,7 @@ namespace SocialNetwork
                 (m1, m2) => new Pair()
                 {
                     Key = $"{m1.Surname} {m1.Name[0]}.",
-                    Value = (today.Day - m2.CreateDt.Day).ToString()
+                    Value = (today - m2.CreateDt).Days.ToString()
                 })
                 .ToList()
                 .OrderByDescending(d => int.Parse(d.Value));
